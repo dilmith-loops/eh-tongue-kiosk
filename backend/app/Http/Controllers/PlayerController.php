@@ -110,6 +110,8 @@ class PlayerController extends Controller
             'name' => 'required|string|max:255',
             'mobile' => 'nullable|string|max:30',
             'email' => 'nullable|email|max:255',
+            'force_new' => 'nullable|boolean',
+            'new_player' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -123,12 +125,17 @@ class PlayerController extends Controller
         $name = trim($request->name);
         $mobile = $request->filled('mobile') ? preg_replace('/[\s-]/', '', $request->mobile) : null;
         $email = $request->filled('email') ? trim($request->email) : null;
+        $forceNew = $request->boolean('force_new') || $request->boolean('new_player');
 
-        // Find existing user by mobile (if supplied) or by name
-        if ($mobile) {
-            $user = User::where('mobile', $mobile)->first();
-        } else {
-            $user = User::where('name', $name)->first();
+        // IMPORTANT: Users are NEVER identified or restricted by IP address.
+        // A single kiosk device / IP can have unlimited distinct players.
+        $user = null;
+        if (!$forceNew) {
+            if ($mobile) {
+                $user = User::where('mobile', $mobile)->first();
+            } else {
+                $user = User::where('name', $name)->first();
+            }
         }
 
         if ($user) {
@@ -161,7 +168,7 @@ class PlayerController extends Controller
             ]);
         }
 
-        // New user
+        // New user profile (independent of IP or previous players on this device)
         $user = User::create([
             'name' => $name,
             'mobile' => $mobile,

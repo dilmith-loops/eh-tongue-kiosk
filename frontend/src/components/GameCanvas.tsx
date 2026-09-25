@@ -26,7 +26,8 @@ import {
   Share2,
   Download,
   Check,
-  Clock
+  Clock,
+  UserPlus
 } from 'lucide-react';
 import { generateAndShareScoreCard } from '../lib/shareCard';
 import SocialShareModal from './SocialShareModal';
@@ -201,7 +202,7 @@ export default function GameCanvas({
       const stored = localStorage.getItem('eh_player');
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed.highest_score === 'number') {
+        if (parsed && typeof parsed.highest_score === 'number' && parsed.id === player.id) {
           best = Math.max(best, parsed.highest_score);
         }
       }
@@ -1649,25 +1650,27 @@ export default function GameCanvas({
                 className="w-full py-3 bg-gradient-to-r from-pink-600 via-rose-500 to-amber-500 hover:from-pink-500 hover:to-amber-400 text-white font-extrabold rounded-2xl shadow-lg shadow-pink-500/30 flex items-center justify-center space-x-2 cursor-pointer transition-all active:scale-98 text-xs sm:text-sm"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>Play Again</span>
+                <span>Play Again ({player.name})</span>
+              </button>
+
+              {/* Next Player / Switch Player Button (Prominent for Kiosk / Shared Device!) */}
+              <button
+                type="button"
+                onClick={onChangePlayer}
+                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-600/30 border border-white/25 flex items-center justify-center space-x-2 transition-all active:scale-98 cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Next Player / Change Name</span>
               </button>
 
               {/* Share Score Card to Socials Button */}
               <button
                 type="button"
                 onClick={() => setShowSocialShareModal(true)}
-                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-[#b21f85] via-[#c22d95] to-[#8d1468] hover:from-[#c22d95] hover:to-[#b21f85] text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-[#b21f85]/30 border border-white/25 flex items-center justify-center space-x-2 transition-all active:scale-98 cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center space-x-2 transition-colors cursor-pointer"
               >
-                <Share2 className="w-4 h-4" />
+                <Share2 className="w-3.5 h-3.5" />
                 <span>Share Score Post & Stories</span>
-              </button>
-
-              {/* Switch Player Button */}
-              <button
-                onClick={onChangePlayer}
-                className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
-              >
-                <span>Switch Player</span>
               </button>
             </div>
           </div>

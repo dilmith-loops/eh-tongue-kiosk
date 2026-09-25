@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Player } from '../types/game';
 import { api } from '../lib/api';
-import { Trophy, AlertCircle, Sparkles } from 'lucide-react';
+import { Trophy, AlertCircle, Sparkles, X, UserPlus } from 'lucide-react';
 import TermsPrivacySheet from './TermsPrivacySheet';
 
 interface Props {
@@ -32,7 +32,8 @@ export default function OnboardingModal({ onStartGame, onOpenLeaderboard }: Prop
       if (stored) {
         const player = JSON.parse(stored);
         setCachedPlayer(player);
-        if (player.name) setName(player.name);
+        // For shared kiosk / device: keep the input clean for the next person,
+        // unless they explicitly want to play as the cached player.
       }
     } catch {
       // ignore
@@ -62,28 +63,35 @@ export default function OnboardingModal({ onStartGame, onOpenLeaderboard }: Prop
       return;
     }
 
+    const isSameAsCached = Boolean(
+      cachedPlayer && cleanName.toLowerCase() === cachedPlayer.name.trim().toLowerCase()
+    );
+
     setLoading(true);
     try {
       const res = await api.authPlayer({
-        name: cleanName
+        name: cleanName,
+        force_new: !isSameAsCached
       });
 
       if (res.player) {
-        const mergedPlayer: Player = {
+        const playerObj: Player = {
           ...res.player,
-          highest_score: Math.max(res.player.highest_score || 0, cachedPlayer?.highest_score || 0)
+          highest_score: isSameAsCached
+            ? Math.max(res.player.highest_score || 0, cachedPlayer?.highest_score || 0)
+            : (res.player.highest_score || 0)
         };
-        localStorage.setItem('eh_player', JSON.stringify(mergedPlayer));
-        onStartGame(mergedPlayer);
+        localStorage.setItem('eh_player', JSON.stringify(playerObj));
+        onStartGame(playerObj);
       } else {
         setError(res.message || 'Could not start game');
       }
     } catch (err: unknown) {
       console.warn('API Auth fallback, starting local player profile:', err);
       const instantPlayer: Player = {
-        id: cachedPlayer?.id || Math.floor(Math.random() * 1000000) + 1,
+        id: isSameAsCached && cachedPlayer?.id ? cachedPlayer.id : Math.floor(Math.random() * 1000000) + 1,
         name: cleanName,
-        highest_score: cachedPlayer?.highest_score || 0,
+        highest_score: isSameAsCached && cachedPlayer?.highest_score ? cachedPlayer.highest_score : 0,
         created_at: new Date().toISOString()
       };
       localStorage.setItem('eh_player', JSON.stringify(instantPlayer));
@@ -117,11 +125,29 @@ export default function OnboardingModal({ onStartGame, onOpenLeaderboard }: Prop
         className="sm:hidden fixed inset-x-3.5 z-40 flex items-center justify-between pointer-events-none"
       >
         {cachedPlayer ? (
-          <div className="pointer-events-auto flex items-center space-x-1.5 bg-white/95 backdrop-blur-md border border-pink-200/80 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700 shadow-sm max-w-[48%] truncate">
+          <div className="pointer-events-auto flex items-center space-x-1.5 bg-white/95 backdrop-blur-md border border-pink-200/80 px-2.5 py-1 rounded-full text-xs font-semibold text-slate-700 shadow-sm max-w-[58%] truncate">
             <Sparkles className="w-3.5 h-3.5 text-pink-500 fill-pink-500 flex-shrink-0" />
-            <span className="truncate">
-              Hi, <strong className="text-pink-950 font-black">{cachedPlayer.name}</strong>
-            </span>
+            <button
+              type="button"
+              onClick={() => setName(cachedPlayer.name)}
+              className="truncate cursor-pointer hover:underline text-left"
+              title="Tap to play as previous player"
+            >
+              <strong className="text-pink-950 font-black">{cachedPlayer.name}</strong>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCachedPlayer(null);
+                setName('');
+                localStorage.removeItem('eh_player');
+              }}
+              className="text-[10px] text-pink-600 hover:text-pink-800 font-extrabold bg-pink-100/90 hover:bg-pink-200 px-1.5 py-0.5 rounded-full cursor-pointer transition-colors flex items-center space-x-0.5"
+              title="Start as a new player"
+            >
+              <UserPlus className="w-2.5 h-2.5" />
+              <span>New</span>
+            </button>
           </div>
         ) : (
           <div />
@@ -141,18 +167,35 @@ export default function OnboardingModal({ onStartGame, onOpenLeaderboard }: Prop
 
       {/* 1. Global Desktop Header Bar */}
       <header className="hidden sm:flex items-center justify-end w-full max-w-6xl mx-auto px-6 py-3.5 z-30 flex-shrink-0 min-h-[52px]">
-        {/* Right Action: Welcome Pill */}
+        {/* Right Action: Welcome Pill & New Player Switcher */}
         {cachedPlayer && (
           <div className="flex items-center space-x-2 bg-white/85 backdrop-blur-md border border-pink-200/80 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-700 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
-            <span>
-              Welcome back, <strong className="text-pink-950 font-black">{cachedPlayer.name}</strong>
-            </span>
+            <button
+              type="button"
+              onClick={() => setName(cachedPlayer.name)}
+              className="cursor-pointer hover:underline"
+              title="Click to play as previous player"
+            >
+              Previous: <strong className="text-pink-950 font-black">{cachedPlayer.name}</strong>
+            </button>
             {Boolean(cachedPlayer.highest_score) && (
               <span className="text-amber-700 font-black ml-1 bg-amber-100 px-2 py-0.5 rounded-full text-[11px] border border-amber-300/50">
                 ★ {cachedPlayer.highest_score}
               </span>
             )}
+            <button
+              type="button"
+              onClick={() => {
+                setCachedPlayer(null);
+                setName('');
+                localStorage.removeItem('eh_player');
+              }}
+              className="ml-1 text-[11px] text-pink-600 hover:text-pink-800 font-black bg-pink-100 hover:bg-pink-200 px-2 py-0.5 rounded-full cursor-pointer transition-colors flex items-center space-x-1"
+            >
+              <UserPlus className="w-3 h-3" />
+              <span>New Player</span>
+            </button>
           </div>
         )}
       </header>
@@ -196,24 +239,36 @@ export default function OnboardingModal({ onStartGame, onOpenLeaderboard }: Prop
                   className="absolute pointer-events-auto flex items-center justify-center"
                   style={{ left: '15.63%', top: '65.04%', width: '68.32%', height: '5.76%' }}
                 >
-                  <input
-                    type="text"
-                    id="player-name-input"
-                    name="playerName"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name..."
-                    maxLength={30}
-                    required
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="words"
-                    spellCheck={false}
-                    className="onboarding-name-input w-full h-full bg-transparent text-[#701047] font-black text-[16px] sm:text-base md:text-lg rounded-full px-5 shadow-none border-0 outline-none focus:outline-none focus:ring-0 transition-all placeholder:text-pink-300 placeholder:font-bold text-center selection:bg-pink-300 selection:text-pink-950"
-                    style={{
-                      WebkitTextFillColor: '#701047',
-                    }}
-                  />
+                  <div className="relative w-full h-full flex items-center">
+                    <input
+                      type="text"
+                      id="player-name-input"
+                      name="playerName"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Enter your name..."
+                      maxLength={30}
+                      required
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="words"
+                      spellCheck={false}
+                      className="onboarding-name-input w-full h-full bg-transparent text-[#701047] font-black text-[16px] sm:text-base md:text-lg rounded-full px-5 shadow-none border-0 outline-none focus:outline-none focus:ring-0 transition-all placeholder:text-pink-300 placeholder:font-bold text-center selection:bg-pink-300 selection:text-pink-950"
+                      style={{
+                        WebkitTextFillColor: '#701047',
+                      }}
+                    />
+                    {name && (
+                      <button
+                        type="button"
+                        onClick={() => setName('')}
+                        aria-label="Clear name"
+                        className="absolute right-2 p-1 text-pink-500 hover:text-pink-700 bg-pink-100/80 hover:bg-pink-200 rounded-full transition-all cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* PLAY NOW! Button Overlay */}

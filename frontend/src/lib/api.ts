@@ -50,6 +50,8 @@ export const api = {
     name: string;
     mobile?: string;
     email?: string;
+    force_new?: boolean;
+    new_player?: boolean;
   }): Promise<{ success: boolean; isNewUser: boolean; message: string; player: Player }> {
     const res = await fetch(`${getApiBaseUrl()}/player/auth`, {
       method: 'POST',
@@ -67,7 +69,7 @@ export const api = {
     return result;
   },
 
-  async authPlayer(data: { name: string; mobile?: string; email?: string }) {
+  async authPlayer(data: { name: string; mobile?: string; email?: string; force_new?: boolean; new_player?: boolean }) {
     return this.authenticatePlayer(data);
   },
 

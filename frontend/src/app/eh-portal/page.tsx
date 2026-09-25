@@ -1383,7 +1383,7 @@ export default function AdminPage() {
                 <div className="text-2xl md:text-3xl font-black text-white mt-2">
                   {stats?.total_users ?? 0}
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">Unique mobile users</p>
+                <p className="text-[11px] text-slate-500 mt-1">Total registered players</p>
               </div>
 
               <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col justify-between">

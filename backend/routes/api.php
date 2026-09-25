@@ -14,11 +14,11 @@ Route::post('/player/ping', [PlayerController::class, 'ping']);
 Route::get('/popsicles', [PopsicleController::class, 'index']);
 Route::get('/popsicles/image/{filename}', [PopsicleController::class, 'serveImage']);
 
-// Player Endpoints (Rate limited against abuse)
-Route::post('/player/auth', [PlayerController::class, 'auth'])->middleware('throttle:30,1');
+// Player Endpoints (Allow multiple players per device/IP without rate-limit throttling)
+Route::post('/player/auth', [PlayerController::class, 'auth'])->middleware('throttle:1000,1');
 
-// Game Score Endpoints (Rate limited against bot submissions)
-Route::post('/game/score', [ScoreController::class, 'submit'])->middleware('throttle:60,1');
+// Game Score Endpoints (Allow high frequency submissions from single kiosk devices)
+Route::post('/game/score', [ScoreController::class, 'submit'])->middleware('throttle:1000,1');
 Route::get('/leaderboard', [ScoreController::class, 'leaderboard']);
 
 // Admin Authentication (Strictly rate-limited to 5 attempts per minute against brute-forcing)
