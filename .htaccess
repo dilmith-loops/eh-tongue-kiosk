@@ -1,9 +1,10 @@
-# Hostinger Apache / LiteSpeed Configuration for Elephant House AR Game
+# Apache & LiteSpeed Configuration for Elephant House AR Game Kiosk
+DirectoryIndex index.html index.php
+Options -Indexes
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
-
-    # Prevent directory listing
-    Options -Indexes
+    RewriteBase /kiosk/
 
     # Custom 404 Error Document
     ErrorDocument 404 /kiosk/404.html
