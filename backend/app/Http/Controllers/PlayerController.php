@@ -136,6 +136,9 @@ class PlayerController extends Controller
             } else {
                 $user = User::where('name', $name)->first();
             }
+        } elseif ($mobile) {
+            // If forcing a new game session but mobile already exists in DB, reuse profile to prevent SQL 1062 duplicate key error
+            $user = User::where('mobile', $mobile)->first();
         }
 
         if ($user) {
