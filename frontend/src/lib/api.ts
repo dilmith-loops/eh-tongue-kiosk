@@ -15,8 +15,8 @@ export function getApiBaseUrl(): string {
     if (hostname.startsWith('arcatch.')) {
       return `${window.location.origin}/api`;
     }
-    // Production domain on cPanel/Hostinger subfolder (e.g., https://ehwonderonline.com/arwonder/api)
-    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/arwonder';
+    // Production domain on cPanel/Hostinger subfolder (e.g., https://ehwonderonline.com/kiosk/api)
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/kiosk';
     return `${window.location.origin}${basePath}/api`;
   }
   return 'http://127.0.0.1:8008/api';

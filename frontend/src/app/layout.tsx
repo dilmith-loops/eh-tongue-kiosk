@@ -8,10 +8,10 @@ const outfit = Outfit({
   weight: ['400', '500', '600', '700', '800', '900']
 });
 
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH !== undefined ? process.env.NEXT_PUBLIC_BASE_PATH : '/arwonder';
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH !== undefined ? process.env.NEXT_PUBLIC_BASE_PATH : '/kiosk';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://arcatch.ehwonderonline.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://ehwonderonline.com/kiosk'),
   title: 'Elephant House Ice Cream | AR Tongue Catch Game',
   description: 'Catch delicious Elephant House ice cream popsicles with your mouth and tongue! Score marks and climb the leaderboard in this interactive AR camera game.',
   keywords: ['Elephant House', 'Ice Cream', 'Popsicle Game', 'AR Game', 'Tongue Catch', 'Sri Lanka'],
@@ -28,12 +28,12 @@ export const metadata: Metadata = {
     title: 'Elephant House AR Tongue Catch Game',
     description: 'Catch delicious falling popsicles with your tongue and win marks!',
     type: 'website',
-    url: 'https://arcatch.ehwonderonline.com/',
+    url: 'https://ehwonderonline.com/kiosk/',
     siteName: 'Elephant House Wonder Game',
     images: [
       {
-        url: 'https://arcatch.ehwonderonline.com/og_image.png',
-        secureUrl: 'https://arcatch.ehwonderonline.com/og_image.png',
+        url: 'https://ehwonderonline.com/kiosk/og_image.png',
+        secureUrl: 'https://ehwonderonline.com/kiosk/og_image.png',
         width: 1200,
         height: 630,
         alt: 'Elephant House AR Tongue Catch Game',
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Elephant House AR Tongue Catch Game',
     description: 'Catch delicious falling popsicles with your tongue and win marks!',
-    images: ['https://arcatch.ehwonderonline.com/og_image.png'],
+    images: ['https://ehwonderonline.com/kiosk/og_image.png'],
   }
 };
 

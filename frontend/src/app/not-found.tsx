@@ -4,6 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { Home, Sparkles, ArrowLeft, Gamepad2 } from 'lucide-react';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function NotFound() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center relative overflow-hidden p-4 select-none">
@@ -30,7 +32,7 @@ export default function NotFound() {
         {/* Brand Logo */}
         <div className="w-24 h-24 mx-auto mb-6 bg-white dark:bg-slate-800 rounded-3xl p-2 shadow-2xl shadow-pink-500/20 flex items-center justify-center border border-white/60 dark:border-slate-700/80 transform hover:scale-105 transition-transform">
           <img
-            src="/logo.png"
+            src={`${basePath}/logo.png`}
             alt="Elephant House"
             className="w-full h-full object-contain"
           />

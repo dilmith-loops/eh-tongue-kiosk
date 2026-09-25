@@ -3,8 +3,8 @@ self.__BUILD_MANIFEST = {
     "afterFiles": [],
     "beforeFiles": [
       {
-        "source": "/arwonder//_next/:path+",
-        "destination": "/arwonder/_next/:path+"
+        "source": "/kiosk//_next/:path+",
+        "destination": "/kiosk/_next/:path+"
       }
     ],
     "fallback": []

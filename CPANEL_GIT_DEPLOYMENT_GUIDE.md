@@ -1,150 +1,178 @@
 # 🚀 Complete cPanel Git Deployment Guide for Elephant House AR Game
+## 🌐 Target URL: `https://ehwonderonline.com/kiosk`
+## 📦 GitHub Repository: `https://github.com/dilmith-loops/eh-tongue-kiosk.git`
 
-This guide provides step-by-step instructions to host the Elephant House AR Game on any **cPanel** hosting account using **Git™ Version Control**.
+This guide provides step-by-step instructions to host and deploy the Elephant House AR Game on your cPanel account using **Git™ Version Control** (Git Connect).
 
 ---
 
 ## 🏗️ Architecture Overview
 
-The repository is structured to run **both Frontend and Backend together** on Apache/LiteSpeed hosting without requiring Node.js on the server:
+The repository is built to run **both the Next.js Frontend and Laravel Backend together** on Apache/LiteSpeed cPanel hosting without needing Node.js or a separate PM2 process on the server:
 
-* **🎮 Frontend (Next.js 16)**: Pre-compiled static assets are located in [`frontend/out/`](frontend/out/). All HTML, JavaScript, WASM face-tracking modules, and 3D models are served directly by Apache.
-* **🔌 Backend (Laravel 11)**: Located in [`backend/`](backend/), handling leaderboard scores, player sessions, admin dashboard, and system settings.
+* **🎮 Frontend (Next.js 16)**: Pre-compiled static export assets with `basePath: '/kiosk'` (`index.html`, `404.html`, `_next/`, `eh-portal/`, `privacy/`, `terms/`, 3D models, and MediaPipe WASM face tracking). Served directly by Apache at maximum speed.
+* **🔌 Backend (Laravel 11)**: Located in [`backend/`](backend/), handling scores, high-frequency kiosk player sessions, multi-player device concurrency, leaderboards, and admin controls.
 * **🔀 Root Router ([`.htaccess`](.htaccess) & [`index.php`](index.php))**:
-  - Automatically routes `/api/*` to the Laravel backend.
-  - Automatically routes web requests, game views, `eh-portal`, terms, and privacy policies to `frontend/out/`.
+  - Automatically routes `/kiosk/api/*` and `/kiosk/uploads/*` to the Laravel backend.
+  - Automatically serves `/kiosk/`, `/kiosk/eh-portal/`, `/kiosk/terms/`, and static assets without collision.
 
 ---
 
-## 📋 Prerequisites Checklist in cPanel
+## 📋 Prerequisites in cPanel
 
-Before deploying, ensure the following in your cPanel dashboard:
+Before connecting Git, ensure the following are configured in your cPanel dashboard:
 
-1. **PHP Version: 8.2 or 8.3**
-   - Go to **cPanel ➔ MultiPHP Manager** (or **Select PHP Version**).
-   - Set your domain to use **PHP 8.2** or **PHP 8.3**.
-   - Ensure the following standard PHP extensions are enabled:
-     `pdo_mysql`, `mbstring`, `openssl`, `bcmath`, `curl`, `fileinfo`, `tokenizer`, `xml`, `zip`.
+### 1. PHP Version (8.2 or 8.3)
+1. Go to **cPanel ➔ MultiPHP Manager** (or **Select PHP Version**).
+2. Set `ehwonderonline.com` to use **PHP 8.2** or **PHP 8.3**.
+3. Verify that standard extensions are active:
+   `pdo_mysql`, `mbstring`, `openssl`, `bcmath`, `curl`, `fileinfo`, `tokenizer`, `xml`, `zip`.
 
-2. **MySQL Database Setup**
-   - Go to **cPanel ➔ MySQL® Databases**:
-     1. **Create New Database**: e.g., `youruser_elephanthouse`.
-     2. **Create New User**: e.g., `youruser_gameuser` with a strong password.
-     3. **Add User to Database**: Select **ALL PRIVILEGES** and click **Make Changes**.
-   - Go to **cPanel ➔ phpMyAdmin**:
-     1. Select your newly created database.
-     2. Click the **Import** tab at the top.
-     3. Choose the [`elephanthouse_game.sql`](elephanthouse_game.sql) file from the repository root.
-     4. Click **Import** (at the bottom) to load the schema and initial settings.
+### 2. MySQL Database Setup
+1. Go to **cPanel ➔ MySQL® Databases**:
+   - **Create New Database**: e.g. `ehwonder_kioskdb`
+   - **Create New User**: e.g. `ehwonder_gameuser` with a secure password.
+   - **Add User to Database**: Check **ALL PRIVILEGES** and click **Make Changes**.
+2. Go to **cPanel ➔ phpMyAdmin**:
+   - Select your database (`ehwonder_kioskdb`).
+   - Click the **Import** tab.
+   - Choose [`elephanthouse_game.sql`](elephanthouse_game.sql) from the repository root.
+   - Click **Import** to load initial schema, settings, and default admin.
 
 ---
 
-## 🚀 Step-by-Step Git Deployment for `https://ehwonderonline.com/arwonder/`
+## 🚀 Step-by-Step Git Connect in cPanel
 
-### Option A: Using cPanel Git™ Version Control (Recommended UI Method)
+### Method 1: Using cPanel Git™ Version Control (Recommended UI Method)
 
-1. Log in to your **cPanel** account for `ehwonderonline.com`.
+1. Log in to your **cPanel** dashboard for `ehwonderonline.com`.
 2. In the **Files** section, click **Git™ Version Control**.
-3. Click the blue **Create** button in the top right.
-4. Fill in the repository details:
-   * **Clone URL**: `https://github.com/dilmith-loops/elephanthousegame.git`
-   * **Repository Path**: `public_html/arwonder`
-   * **Repository Name**: `arwonder`
-5. Click **Create**. cPanel will clone the repository directly into `public_html/arwonder`.
+3. Click the blue **Create** button (top right).
+4. Fill in the fields:
+   * **Clone URL**: `https://github.com/dilmith-loops/eh-tongue-kiosk.git`
+   * **Repository Path**: `public_html/kiosk`
+     *(cPanel will automatically create the `kiosk` folder inside `public_html`)*
+   * **Repository Name**: `kiosk`
+5. Click **Create**.
+   * cPanel will clone the repository into `/home/YOUR_USER/public_html/kiosk`.
 
 ---
 
-### Option B: Using cPanel Terminal / SSH (Fastest Method)
+### Method 2: Using cPanel Terminal / SSH (Fastest)
 
-If your cPanel has the **Terminal** tool:
+If your hosting provides the **Terminal** feature:
 
 ```bash
-# 1. Navigate to public_html
+# 1. Go to public_html
 cd ~/public_html
 
-# 2. Clone repository into the 'arwonder' subfolder:
-git clone https://github.com/dilmith-loops/elephanthousegame.git arwonder
+# 2. Clone repository into the 'kiosk' folder:
+git clone https://github.com/dilmith-loops/eh-tongue-kiosk.git kiosk
 ```
 
 ---
 
 ## ⚙️ Backend Configuration
 
-### 1. Create `backend/.env`
+### 1. Configure `backend/.env`
 In cPanel **File Manager** (or Terminal):
-1. Navigate to `backend/`.
-2. Copy `backend/.env.cpanel.example` to `backend/.env`.
-3. Open `backend/.env` and update your database credentials and domain:
+1. Navigate into `public_html/kiosk/backend/`.
+2. Copy `.env.cpanel.example` to `.env`:
+   ```bash
+   cp .env.cpanel.example .env
+   ```
+3. Edit `backend/.env` and update the database credentials:
 
 ```env
 APP_NAME="Elephant House AR Game"
 APP_ENV=production
 APP_KEY=base64:ekLyZjg42eqEKw2jymhalp2GzRxia10qDSzpw0Gt8eA=
 APP_DEBUG=false
-APP_URL=https://yourdomain.com
+APP_URL=https://ehwonderonline.com/kiosk
+
+APP_LOCALE=en
+APP_FALLBACK_LOCALE=en
+APP_FAKER_LOCALE=en_US
+
+LOG_CHANNEL=stack
+LOG_STACK=single
+LOG_LEVEL=error
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=youruser_elephanthouse
-DB_USERNAME=youruser_gameuser
-DB_PASSWORD=YourPasswordHere
+DB_DATABASE=yourcpaneluser_kioskdb
+DB_USERNAME=yourcpaneluser_gameuser
+DB_PASSWORD=YourDatabasePasswordHere
 
 SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=null
+
+BROADCAST_CONNECTION=log
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=database
 CACHE_STORE=database
+
 CORS_ALLOWED_ORIGINS=*
 ```
 
-### 2. Install / Verify PHP Dependencies (`vendor/`)
+---
+
+### 2. Verify PHP Dependencies (`backend/vendor/`)
 
 #### If you have cPanel Terminal:
-Run the following commands:
 ```bash
-cd ~/public_html/backend
+cd ~/public_html/kiosk/backend
 composer install --no-dev --optimize-autoloader
 php artisan config:cache
 php artisan route:cache
 ```
 
-#### If you DO NOT have Terminal or Composer on your hosting:
-1. On your local machine, open terminal in this project:
+#### If you do NOT have Terminal / Composer:
+1. In your local repository, run:
    ```bash
-   cd /Applications/XAMPP/xamppfiles/htdocs/elephanthousegame/backend
+   cd backend
+   composer install --no-dev
    zip -r vendor.zip vendor
    ```
-2. In cPanel **File Manager**, upload `vendor.zip` into `public_html/backend/` and click **Extract**.
+2. Upload `vendor.zip` to `public_html/kiosk/backend/` using cPanel File Manager and extract it.
 
-### 3. Permissions Check
-Ensure the following directories have write permissions (`775` or `755`):
-* `backend/storage/` (and all subdirectories: `framework`, `logs`, `app`)
-* `backend/bootstrap/cache/`
+---
+
+### 3. File Permissions
+Ensure Laravel storage and bootstrap cache directories are writable:
+* `public_html/kiosk/backend/storage/` -> `775` (or `755`)
+* `public_html/kiosk/backend/bootstrap/cache/` -> `775` (or `755`)
 
 In cPanel Terminal:
 ```bash
-chmod -R 775 ~/public_html/backend/storage
-chmod -R 775 ~/public_html/backend/bootstrap/cache
+chmod -R 775 ~/public_html/kiosk/backend/storage
+chmod -R 775 ~/public_html/kiosk/backend/bootstrap/cache
 ```
 
 ---
 
-## 🔄 How to Pull Future Updates with Git
+## 🔄 How to Pull Future Updates (1-Click Deployment)
 
-Whenever you commit and push new code to GitHub `main`:
+Whenever you push commits to GitHub `main`:
 
 1. Open cPanel ➔ **Git™ Version Control**.
-2. Find `elephanthousegame` and click **Manage**.
-3. Switch to the **Pull or Deploy** tab.
+2. Find the repository (`kiosk`) and click **Manage**.
+3. Go to the **Pull or Deploy** tab.
 4. Click **Update from Remote**.
-5. Done! Your live website updates in seconds without any manual FTP re-uploading.
+5. Your live game at `https://ehwonderonline.com/kiosk` is instantly updated!
 
 ---
 
-## 🛠️ Verification & Troubleshooting
+## 🛠️ Verification & Troubleshooting Checklist
 
-| Check | Expected Result | Solution if Failing |
+| URL to Test | Expected Result | Solution if Failing |
 | :--- | :--- | :--- |
-| **Game Home** (`https://yourdomain.com/`) | 3D Ice cream game interface loads with AR camera prompt. | Check that `.htaccess` is present and permissions are `644`. |
-| **API Health** (`https://yourdomain.com/api/settings`) | Returns JSON with game settings (`status: true`). | Verify `backend/.env` database credentials and PHP version 8.2+. |
-| **Admin Portal** (`https://yourdomain.com/eh-portal`) | Elephant House Admin Login screen. | Ensure `frontend/out/eh-portal/index.html` exists. |
-| **500 Internal Error** | Error page displayed. | Check `backend/storage/logs/laravel.log` and ensure `storage/` directory permissions are `775`. |
-| **Blank Screen / 404** | Assets not loading. | In cPanel File Manager, ensure **"Show Hidden Files"** is enabled so `.htaccess` was not missed. |
+| **`https://ehwonderonline.com/kiosk`** | 3D Ice cream game interface with camera prompt. | Check that `.htaccess` exists in `public_html/kiosk/` (Enable "Show Hidden Files" in cPanel File Manager). |
+| **`https://ehwonderonline.com/kiosk/api/settings`** | Returns JSON `{"status":true,"settings":{...}}`. | Check `backend/.env` database credentials and verify PHP version is 8.2+. |
+| **`https://ehwonderonline.com/kiosk/eh-portal/`** | Elephant House Admin Login screen. | Ensure permissions allow reading HTML files (`644`). |
+| **500 Server Error** | HTTP 500 error page. | Check `backend/storage/logs/laravel.log` and verify `storage/` directory permissions (`chmod -R 775`). |
+| **404 on API requests** | API endpoint returns 404. | Confirm `mod_rewrite` is enabled on Apache and `.htaccess` is present in `public_html/kiosk/`. |
